@@ -114,60 +114,64 @@ router.put("/:productId/update", async (req, res) => {
 router.post("/creates", async (req, res) => {
    const reqData = req.body;
    try {
-      const products = await Promise.all(
-         reqData.map(async (item) => {
-            let topLevel = await Category.findOne({
-               name: item.topLevelCategory,
-            });
-            if (!topLevel) {
-               topLevel = await Category.create({
-                  name: item.topLevelCategory,
-                  level: 1,
-               });
-            }
+      const products = [];
+      for (let i = 0; i < reqData.length; i++) {
+         const item = reqData[i];
 
-            let secondLevel = await Category.findOne({
+         let topLevel = await Category.findOne({
+            name: item.topLevelCategory,
+         });
+         console.log(i + ": " + topLevel);
+         if (!topLevel) {
+            topLevel = await Category.create({
+               name: item.topLevelCategory,
+               level: 1,
+            });
+         }
+
+         let secondLevel = await Category.findOne({
+            name: item.secondLevelCategory,
+            parentCategory: topLevel._id,
+         });
+         console.log(i + ": " + secondLevel);
+         if (!secondLevel) {
+            secondLevel = await Category.create({
                name: item.secondLevelCategory,
                parentCategory: topLevel._id,
+               level: 2,
             });
-            if (!secondLevel) {
-               secondLevel = await Category.create({
-                  name: item.secondLevelCategory,
-                  parentCategory: topLevel._id,
-                  level: 2,
-               });
-            }
+         }
 
-            let thirdLevel = await Category.findOne({
+         let thirdLevel = await Category.findOne({
+            name: item.thirdLevelCategory,
+            parentCategory: secondLevel._id,
+         });
+         console.log(i + ": " + thirdLevel);
+         if (!thirdLevel) {
+            thirdLevel = await Category.create({
                name: item.thirdLevelCategory,
                parentCategory: secondLevel._id,
+               level: 3,
             });
-            if (!thirdLevel) {
-               thirdLevel = await Category.create({
-                  name: item.thirdLevelCategory,
-                  parentCategory: secondLevel._id,
-                  level: 3,
-               });
-            }
+         }
 
-            const product = new Product({
-               title: item.title,
-               description: item.description,
-               price: item.price,
-               discountedPrice: item.discountedPrice,
-               discountPercent: item.discountPercent,
-               quantity: item.quantity,
-               brand: item.brand,
-               color: item.color,
-               sizes: item.size,
-               imageUrl: item.imageUrl,
-               category: thirdLevel,
-            });
+         const product = new Product({
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            discountedPrice: item.discountedPrice,
+            discountPercent: item.discountPercent,
+            quantity: item.quantity,
+            brand: item.brand,
+            color: item.color,
+            sizes: item.size,
+            imageUrl: item.imageUrl,
+            category: thirdLevel,
+         });
 
-            await product.save();
-            return product;
-         })
-      );
+         await product.save();
+         products.push(product);
+      }
 
       res.status(201).json({ message: "Products created successfully" });
    } catch (err) {
