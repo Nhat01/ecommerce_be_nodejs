@@ -28,7 +28,12 @@ mongoose
 
 // Middleware để phân tích các yêu cầu HTTP
 app.use(express.json());
-app.use(cors());
+app.use(
+   cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+   })
+);
 // Các route khác có thể được định nghĩa tương tự cho các mô hình khác
 app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
