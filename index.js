@@ -10,6 +10,7 @@ const orderRoute = require("./routes/order");
 const adminOrderRoute = require("./routes/adminOrder");
 const ratingRoute = require("./routes/rating");
 const reviewRoute = require("./routes/review");
+var cors = require("cors");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,7 +28,7 @@ mongoose
 
 // Middleware để phân tích các yêu cầu HTTP
 app.use(express.json());
-
+app.use(cors());
 // Các route khác có thể được định nghĩa tương tự cho các mô hình khác
 app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
