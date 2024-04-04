@@ -27,7 +27,9 @@ router.get("/filter", async (req, res) => {
          return res.status(400).json({ error: "Invalid pageNumber value" });
       }
       if (category) {
-         const foundCategory = await Category.findOne({ name: category });
+         const foundCategory = await Category.findOne({
+            name: category.toLocaleLowerCase(),
+         });
          if (foundCategory) {
             query.category = foundCategory._id;
          } else {
@@ -96,35 +98,40 @@ router.get("/search", async (req, res) => {
 
 // Get Latest Products by Categories
 router.get("/latest", async (req, res) => {
-   const { categories, numberOfProducts } = req.body;
-   // Check if categories is not provided or not an array
-   if (!categories || !Array.isArray(categories)) {
+   const { categories, numberOfProducts } = req.query; // Extract parameters from query string
+   // Check if categories is not provided or not a string
+   if (!categories || typeof categories !== "string") {
       return res
          .status(400)
-         .json({ error: "Invalid or missing 'categories' array" });
+         .json({ error: "Invalid or missing 'categories' string" });
    }
+   console.log(categories);
 
    // Check if numberOfProducts is not provided or not a valid number
    if (
       !numberOfProducts ||
-      typeof numberOfProducts !== "number" ||
-      numberOfProducts <= 0
+      isNaN(Number(numberOfProducts)) ||
+      Number(numberOfProducts) <= 0
    ) {
       return res
          .status(400)
          .json({ error: "Invalid or missing 'numberOfProducts' value" });
    }
+
    try {
+      const categoryNames = categories.split(","); // Split the categories string into an array
       const latestProducts = [];
-      for (let categoryName of categories) {
-         const category = await Category.findOne({ name: categoryName });
+      for (let categoryName of categoryNames) {
+         const category = await Category.findOne({
+            name: categoryName,
+         });
          if (!category) {
             console.log(`Category '${categoryName}' not found`);
             continue;
          }
          const products = await Product.find({ category: category._id })
             .sort({ createdAt: -1 })
-            .limit(numberOfProducts)
+            .limit(Number(numberOfProducts)) // Convert numberOfProducts to a number
             .exec();
          latestProducts.push({
             name: categoryName,
