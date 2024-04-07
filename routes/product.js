@@ -72,7 +72,9 @@ router.get("/id/:productId", async (req, res) => {
    const productId = req.params.productId;
 
    try {
-      const product = await Product.findById(productId).exec();
+      const product = await Product.findById(productId)
+         .populate("category")
+         .exec();
       if (!product) {
          return res.status(404).json({ message: "Product not found" });
       }
@@ -88,7 +90,9 @@ router.get("/search", async (req, res) => {
    const category = req.query.category;
 
    try {
-      const products = await Product.find({ category: category }).exec();
+      const products = await Product.find({ category: category })
+         .populate("category")
+         .exec();
       res.status(200).json(products);
    } catch (err) {
       console.error(err.message);
