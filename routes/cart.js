@@ -18,19 +18,17 @@ router.get("/", authenticateJWT, async (req, res) => {
       });
       let totalPrice = 0;
       let totalDiscountedPrice = 0;
-      let totalItem = 0;
 
       if (cart.cartItems) {
          for (const cartItem of cart.cartItems) {
             totalPrice += cartItem.price;
             totalDiscountedPrice += cartItem.discountedPrice;
-            totalItem += cartItem.quantity;
          }
       }
 
       cart.totalPrice = totalPrice;
       cart.totalDiscountedPrice = totalDiscountedPrice;
-      cart.totalItem = totalItem;
+      cart.totalItem = cart.cartItems.length;
       cart.discount = totalPrice - totalDiscountedPrice;
 
       await cart.save();
