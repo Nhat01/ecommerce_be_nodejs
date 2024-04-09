@@ -49,7 +49,12 @@ router.post("/add", authenticateJWT, async (req, res) => {
 
       const { productId, quantity, size } = req.body;
 
-      const cart = await Cart.findOne({ user: user._id });
+      const cart = await Cart.findOne({ user: user._id }).populate({
+         path: "cartItems",
+         populate: {
+            path: "product",
+         },
+      });
       const product = await Product.findById(productId);
 
       // Check if item already exists in cart
@@ -85,6 +90,7 @@ router.post("/add", authenticateJWT, async (req, res) => {
       if (!cart.cartItems.includes(cartItem._id)) {
          cart.cartItems.push(cartItem._id);
       }
+      cart.totalItem = cart.cartItems.length;
       await cart.save();
 
       // Populate and send the updated cart
