@@ -64,6 +64,8 @@ router.post("/add", authenticateJWT, async (req, res) => {
       if (cartItem) {
          // If item already exists, update quantity
          cartItem.quantity += quantity;
+         cartItem.price = product.price * cartItem.quantity;
+         cartItem.discountedPrice = product.discountedPrice * cartItem.quantity;
       } else {
          // If item does not exist, create a new cart item
          cartItem = new CartItem({
@@ -71,8 +73,8 @@ router.post("/add", authenticateJWT, async (req, res) => {
             product: productId,
             quantity: quantity,
             size,
-            price: product.discountedPrice * quantity,
-            discountedPrice: product.discountedPrice,
+            price: product.price * quantity,
+            discountedPrice: product.discountedPrice * quantity,
          });
       }
 
