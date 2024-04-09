@@ -10,7 +10,12 @@ const { authenticateJWT } = require("../middleware/jwt");
 router.get("/", authenticateJWT, async (req, res) => {
    try {
       const user = await User.findOne({ email: req.user.email });
-      const cart = await Cart.findOne({ user: user._id }).populate("cartItems");
+      const cart = await Cart.findOne({ user: user._id }).populate({
+         path: "cartItems",
+         populate: {
+            path: "product",
+         },
+      });
       res.status(200).json(cart);
    } catch (error) {
       res.status(500).json({ message: error.message });
