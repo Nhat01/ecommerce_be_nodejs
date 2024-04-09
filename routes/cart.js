@@ -88,7 +88,12 @@ router.post("/add", authenticateJWT, async (req, res) => {
       await cart.save();
 
       // Populate and send the updated cart
-      const updatedCart = await Cart.findById(cart._id).populate("cartItems");
+      const updatedCart = await Cart.findById(cart._id).populate({
+         path: "cartItems",
+         populate: {
+            path: "product",
+         },
+      });
       res.status(200).json(updatedCart);
    } catch (error) {
       console.error("Error:", error);
