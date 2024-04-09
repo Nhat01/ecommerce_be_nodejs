@@ -31,6 +31,7 @@ router.get("/", authenticateJWT, async (req, res) => {
       cart.totalPrice = totalPrice;
       cart.totalDiscountedPrice = totalDiscountedPrice;
       cart.totalItem = totalItem;
+      cart.discount = totalPrice - totalDiscountedPrice;
 
       await cart.save();
 
@@ -74,7 +75,8 @@ router.post("/add", authenticateJWT, async (req, res) => {
             size,
             price: product.price * quantity,
             discountedPrice: product.discountedPrice * quantity,
-            discount: product.discountPercent,
+            discount:
+               product.price * quantity - product.discountedPrice * quantity,
          });
       }
 
