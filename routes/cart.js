@@ -87,7 +87,10 @@ router.post("/add", authenticateJWT, async (req, res) => {
       await cartItem.save();
 
       // Update the cart with the new or updated cart item
-      if (!cart.cartItems.includes(cartItem._id)) {
+      const isAlreadyIncluded = cart.cartItems.find((item) =>
+         item._id.equals(cartItem._id)
+      );
+      if (!isAlreadyIncluded) {
          cart.cartItems.push(cartItem._id);
       }
       cart.totalItem = cart.cartItems.length;
