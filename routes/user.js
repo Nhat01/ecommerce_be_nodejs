@@ -7,7 +7,7 @@ const User = require("../models/User");
 router.get("/profile", authenticateJWT, async (req, res) => {
    try {
       const email = req.user.email;
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email }).populate("address");
 
       if (!user) {
          return res.status(404).json({ message: "User not found" });

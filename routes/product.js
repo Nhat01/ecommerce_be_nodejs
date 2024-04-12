@@ -1,4 +1,3 @@
-// controllers/productController.js
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
@@ -36,7 +35,10 @@ router.get("/filter", async (req, res) => {
             return res.status(400).json({ error: "Invalid category name" });
          }
       }
-      if (color) query.color = { $in: color };
+      if (color) {
+         const colorList = color.split(",").map((c) => c.trim());
+         query.color = { $in: colorList };
+      }
       if (size && size !== "0") query.sizes = { $in: size };
       if (minPrice || maxPrice) {
          query.price = {};
@@ -54,13 +56,16 @@ router.get("/filter", async (req, res) => {
       if (sort === "latest") sortOption = { createdAt: -1 };
       else if (sort === "price_low_to_high") sortOption = { price: 1 };
       else if (sort === "price_high_to_low") sortOption = { price: -1 };
-
+      console.log(query);
+      const totalProducts = await Product.countDocuments(query);
+      const totalPages = Math.ceil(totalProducts / pageSize);
       const products = await Product.find(query)
          .sort(sortOption)
          .skip((parsedPageNumber - 1) * pageSize)
          .limit(pageSize)
          .exec();
-      res.status(200).json(products);
+
+      res.status(200).json({ products, totalPages });
    } catch (err) {
       console.error(err.message);
       res.status(500).send("Server Error");
@@ -93,6 +98,7 @@ router.get("/search", async (req, res) => {
       const products = await Product.find({ category: category })
          .populate("category")
          .exec();
+
       res.status(200).json(products);
    } catch (err) {
       console.error(err.message);

@@ -10,6 +10,8 @@ const orderRoute = require("./routes/order");
 const adminOrderRoute = require("./routes/adminOrder");
 const ratingRoute = require("./routes/rating");
 const reviewRoute = require("./routes/review");
+const paymentRoute = require("./routes/payment");
+
 var cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -45,6 +47,7 @@ app.use("/api/orders", orderRoute);
 app.use("/api/admin/orders", adminOrderRoute);
 app.use("/api/reviews", reviewRoute);
 app.use("/api/ratings", ratingRoute);
+app.use("/api", paymentRoute);
 
 // Middleware xử lý lỗi nếu route không tồn tại
 app.use((req, res, next) => {
