@@ -21,6 +21,7 @@ router.post("/signup", async (req, res) => {
          password,
          firstName,
          lastName,
+         role: "User",
       });
 
       const salt = await bcrypt.genSalt(10);
@@ -50,16 +51,19 @@ router.post("/signin", async (req, res) => {
       if (!user) {
          return res.status(400).json({ message: "Invalid credentials" });
       }
+      if (user.password !== undefined) {
+         const isMatch = await bcrypt.compare(password, user.password);
 
-      const isMatch = await bcrypt.compare(password, user.password);
+         if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+         }
 
-      if (!isMatch) {
-         return res.status(400).json({ message: "Invalid credentials" });
+         const token = generateToken(user.email);
+
+         res.status(200).json({ token, message: "Sign in successful" });
+      } else {
+         res.status(400).json({ message: "User or password not match" });
       }
-
-      const token = generateToken(user.email);
-
-      res.status(200).json({ token, message: "Sign in successful" });
    } catch (err) {
       console.error(err.message);
       res.status(500).send("Server Error");

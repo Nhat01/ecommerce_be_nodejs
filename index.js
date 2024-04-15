@@ -11,6 +11,8 @@ const adminOrderRoute = require("./routes/adminOrder");
 const ratingRoute = require("./routes/rating");
 const reviewRoute = require("./routes/review");
 const paymentRoute = require("./routes/payment");
+const adminUserRoute = require("./routes/adminUser");
+const { authenticateAdmin } = require("./middleware/jwt");
 
 var cors = require("cors");
 require("dotenv").config();
@@ -40,13 +42,14 @@ app.use(
 app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
-app.use("/api/admin/products", adminProductRoute);
+app.use("/api/admin/products", authenticateAdmin, adminProductRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/cartItem", cartItemRoute);
 app.use("/api/orders", orderRoute);
-app.use("/api/admin/orders", adminOrderRoute);
+app.use("/api/admin/orders", authenticateAdmin, adminOrderRoute);
 app.use("/api/reviews", reviewRoute);
 app.use("/api/ratings", ratingRoute);
+app.use("/api/admin/users", authenticateAdmin, adminUserRoute);
 app.use("/api", paymentRoute);
 
 // Middleware xử lý lỗi nếu route không tồn tại
