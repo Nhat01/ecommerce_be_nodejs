@@ -37,9 +37,10 @@ router.get("/find", async (req, res) => {
 });
 
 // Route to update an admin user by ID
-router.put("/:id", async (req, res) => {
+router.put("/update", async (req, res) => {
    try {
-      const user = await User.findById(req.params.id);
+      const user = await User.findById(req.body._id);
+      console.log(user);
       if (user == null) {
          return res.status(404).json({ message: "User not found" });
       }
@@ -59,6 +60,44 @@ router.put("/:id", async (req, res) => {
       res.json(updatedUser);
    } catch (err) {
       res.status(400).json({ message: err.message });
+   }
+});
+
+// Route to delete a single user by ID
+router.delete("/delete/:id", async (req, res) => {
+   try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+         return res.status(404).json({ message: "User not found" });
+      }
+
+      await user.remove();
+      res.json({ message: "User deleted successfully" });
+   } catch (err) {
+      res.status(500).json({ message: err.message });
+   }
+});
+
+// Route to delete multiple users by IDs
+router.delete("/delete", async (req, res) => {
+   const { ids } = req.body;
+
+   try {
+      // Validate IDs
+      if (!ids || !Array.isArray(ids)) {
+         return res.status(400).json({ message: "Invalid IDs" });
+      }
+
+      // Delete users
+      const result = await User.deleteMany({ _id: { $in: ids } });
+
+      if (result.deletedCount === 0) {
+         return res.status(404).json({ message: "No users found" });
+      }
+
+      res.json({ message: "Users deleted successfully" });
+   } catch (err) {
+      res.status(500).json({ message: err.message });
    }
 });
 

@@ -20,6 +20,7 @@ const productSchema = new mongoose.Schema({
    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
    numRatings: Number,
    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+   status: { type: Number, default: 1 },
 });
 
 module.exports = mongoose.model("Product", productSchema);

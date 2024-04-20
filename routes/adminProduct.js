@@ -61,6 +61,32 @@ router.post("/", async (req, res) => {
    }
 });
 
+router.get("/find", async (req, res) => {
+   const { pageNumber, pageSize } = req.query;
+
+   try {
+      let query = {};
+      const parsedPageNumber = parseInt(pageNumber);
+      if (isNaN(parsedPageNumber) || parsedPageNumber < 1) {
+         return res.status(400).json({ error: "Invalid pageNumber value" });
+      }
+
+      console.log(query);
+      const totalUsers = await Product.countDocuments(query);
+      const totalPages = Math.ceil(totalUsers / pageSize);
+      const products = await Product.find(query)
+         .populate("category")
+         .skip((parsedPageNumber - 1) * pageSize)
+         .limit(pageSize)
+         .exec();
+
+      res.status(200).json({ products, totalPages });
+   } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+   }
+});
+
 router.delete("/:productId/delete", async (req, res) => {
    const productId = req.params.productId;
    try {
