@@ -75,12 +75,48 @@ router.get("/find", async (req, res) => {
       const totalUsers = await Product.countDocuments(query);
       const totalPages = Math.ceil(totalUsers / pageSize);
       const products = await Product.find(query)
-         .populate("category")
+         .populate({
+            path: "category",
+            populate: {
+               path: "parentCategory",
+               populate: {
+                  path: "parentCategory",
+               },
+            },
+         })
          .skip((parsedPageNumber - 1) * pageSize)
          .limit(pageSize)
          .exec();
 
-      res.status(200).json({ products, totalPages });
+      const transformedProducts = products.map((product) => {
+         const { category } = product;
+         console.log("category ", category);
+         if (category) {
+            const categoryData = [];
+            if (
+               category.parentCategory &&
+               category.parentCategory.parentCategory
+            ) {
+               categoryData.push({
+                  level: 3,
+                  name: category.name,
+               });
+            }
+            if (category.parentCategory) {
+               categoryData.push({
+                  level: 2,
+                  name: category.parentCategory.name,
+               });
+            }
+            categoryData.push({
+               level: 1,
+               name: category.parentCategory.parentCategory.name,
+            });
+            return { ...product.toObject(), category: categoryData };
+         }
+      });
+
+      res.status(200).json({ products: transformedProducts, totalPages });
    } catch (err) {
       console.error(err.message);
       res.status(500).send("Server Error");
