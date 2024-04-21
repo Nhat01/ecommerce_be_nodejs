@@ -11,6 +11,7 @@ const adminOrderRoute = require("./routes/adminOrder");
 const ratingRoute = require("./routes/rating");
 const reviewRoute = require("./routes/review");
 const paymentRoute = require("./routes/payment");
+const categoryRoute = require("./routes/category");
 const adminUserRoute = require("./routes/adminUser");
 const { authenticateAdmin } = require("./middleware/jwt");
 
@@ -49,6 +50,7 @@ app.use("/api/orders", orderRoute);
 app.use("/api/admin/orders", authenticateAdmin, adminOrderRoute);
 app.use("/api/reviews", reviewRoute);
 app.use("/api/ratings", ratingRoute);
+app.use("/api/categories", categoryRoute);
 app.use("/api/admin/users", authenticateAdmin, adminUserRoute);
 app.use("/api", paymentRoute);
 
