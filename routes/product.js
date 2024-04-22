@@ -20,7 +20,7 @@ router.get("/filter", async (req, res) => {
    } = req.query;
 
    try {
-      let query = {};
+      let query = { status: 1 };
       const parsedPageNumber = parseInt(pageNumber);
       if (isNaN(parsedPageNumber) || parsedPageNumber < 1) {
          return res.status(400).json({ error: "Invalid pageNumber value" });
@@ -79,6 +79,8 @@ router.get("/id/:productId", async (req, res) => {
    try {
       const product = await Product.findById(productId)
          .populate("category")
+         .where("status")
+         .equals(1)
          .exec();
       if (!product) {
          return res.status(404).json({ message: "Product not found" });
@@ -97,6 +99,8 @@ router.get("/search", async (req, res) => {
    try {
       const products = await Product.find({ category: category })
          .populate("category")
+         .where("status")
+         .equals(1)
          .exec();
 
       res.status(200).json(products);
@@ -139,7 +143,10 @@ router.get("/latest", async (req, res) => {
             console.log(`Category '${categoryName}' not found`);
             continue;
          }
-         const products = await Product.find({ category: category._id })
+         const products = await Product.find({
+            category: category._id,
+            status: 1,
+         })
             .sort({ createdAt: -1 })
             .limit(Number(numberOfProducts)) // Convert numberOfProducts to a number
             .exec();

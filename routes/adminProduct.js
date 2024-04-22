@@ -3,6 +3,13 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const {
+   upload,
+   uploadToFireBase,
+   deleteFileFromFirebase,
+} = require("../middleware/fileUpload");
+const CartItem = require("../models/CartItem");
+const User = require("../models/User");
 
 router.post("/", async (req, res) => {
    const reqData = req.body;
@@ -71,7 +78,6 @@ router.get("/find", async (req, res) => {
          return res.status(400).json({ error: "Invalid pageNumber value" });
       }
 
-      console.log(query);
       const totalUsers = await Product.countDocuments(query);
       const totalPages = Math.ceil(totalUsers / pageSize);
       const products = await Product.find(query)
@@ -90,7 +96,6 @@ router.get("/find", async (req, res) => {
 
       const transformedProducts = products.map((product) => {
          const { category } = product;
-         console.log("category ", category);
          if (category) {
             const categoryData = [];
             if (
@@ -152,20 +157,79 @@ router.get("/all", async (req, res) => {
    }
 });
 
-router.put("/:productId/update", async (req, res) => {
+router.put("/:productId/update", upload.single("file"), async (req, res) => {
    const productId = req.params.productId;
-   const reqData = req.body;
+   const reqData = JSON.parse(req.body.product);
    try {
       let product = await Product.findById(productId);
       if (!product) {
          return res.status(404).json({ message: "Product not found" });
       }
 
-      if (reqData.quantity !== undefined) {
-         product.quantity = reqData.quantity;
+      let topLevel = await Category.findOne({ name: reqData.topLevelCategory });
+      if (!topLevel) {
+         topLevel = await Category.create({
+            name: reqData.topLevelCategory,
+            level: 1,
+         });
       }
 
+      let secondLevel = await Category.findOne({
+         name: reqData.secondLevelCategory,
+         parentCategory: topLevel._id,
+      });
+      if (!secondLevel) {
+         secondLevel = await Category.create({
+            name: reqData.secondLevelCategory,
+            parentCategory: topLevel._id,
+            level: 2,
+         });
+      }
+
+      let thirdLevel = await Category.findOne({
+         name: reqData.thirdLevelCategory,
+         parentCategory: secondLevel._id,
+      });
+      if (!thirdLevel) {
+         thirdLevel = await Category.create({
+            name: reqData.thirdLevelCategory,
+            parentCategory: secondLevel._id,
+            level: 3,
+         });
+      }
+
+      product.title = reqData.title;
+      product.description = reqData.description;
+      product.price = reqData.price;
+      product.discountedPrice = reqData.discountedPrice;
+      product.discountPercent = reqData.discountPercent;
+      product.quantity = reqData.quantity;
+      product.brand = reqData.brand;
+      product.color = reqData.color;
+      product.sizes = reqData.size;
+      product.category = thirdLevel;
+      if (req.file) {
+         await deleteFileFromFirebase(product.imageUrl);
+         const publicUrl = await uploadToFireBase(req, res);
+         product.imageUrl = publicUrl;
+      } else {
+         product.imageUrl = product.imageUrl;
+      }
+      product.status = reqData.status;
       await product.save();
+
+      const currentStatus = product.status;
+      if (currentStatus === 0) {
+         if (currentStatus === 1 && reqData.status === 0) {
+            // Tìm tất cả các mục giỏ hàng chứa sản phẩm được cập nhật
+            const cartItems = await CartItem.find({ product: productId });
+
+            // Xóa các mục giỏ hàng tìm được
+            for (let cartItem of cartItems) {
+               await cartItem.remove();
+            }
+         }
+      }
       res.json(product);
    } catch (err) {
       console.error(err.message);
@@ -183,7 +247,6 @@ router.post("/creates", async (req, res) => {
          let topLevel = await Category.findOne({
             name: item.topLevelCategory,
          });
-         console.log(i + ": " + topLevel);
          if (!topLevel) {
             topLevel = await Category.create({
                name: item.topLevelCategory,
@@ -195,7 +258,6 @@ router.post("/creates", async (req, res) => {
             name: item.secondLevelCategory,
             parentCategory: topLevel._id,
          });
-         console.log(i + ": " + secondLevel);
          if (!secondLevel) {
             secondLevel = await Category.create({
                name: item.secondLevelCategory,
@@ -208,7 +270,6 @@ router.post("/creates", async (req, res) => {
             name: item.thirdLevelCategory,
             parentCategory: secondLevel._id,
          });
-         console.log(i + ": " + thirdLevel);
          if (!thirdLevel) {
             thirdLevel = await Category.create({
                name: item.thirdLevelCategory,

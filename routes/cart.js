@@ -172,4 +172,34 @@ router.post("/addItems", authenticateJWT, async (req, res) => {
    }
 });
 
+router.delete("/:cartId/remove-all", async (req, res) => {
+   const cartId = req.params.cartId;
+
+   try {
+      // Tìm giỏ hàng theo cartId
+      const cartItems = await CartItem.find({ cart: cartId });
+
+      // Xóa các mục giỏ hàng tìm được
+      for (let cartItem of cartItems) {
+         await cartItem.remove();
+      }
+
+      const cart = await Cart.findById(cartId);
+      if (!cart) {
+         return res.status(404).json({ message: "Cart not found" });
+      }
+
+      // Xóa tất cả các mục giỏ hàng từ giỏ hàng
+      cart.cartItems = [];
+      await cart.save();
+
+      res.status(200).json({
+         message: "Cart items have been removed successfully.",
+      });
+   } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+   }
+});
+
 module.exports = router;

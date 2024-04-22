@@ -6,7 +6,13 @@ const Order = require("../models/Order");
 // Get all orders
 router.get("/", authenticateJWT, async (req, res) => {
    try {
-      const orders = await Order.find();
+      const orders = await Order.find().populate({
+         path: "orderItems",
+         populate: {
+            path: "product",
+            select: "imageUrl", // Chỉ lấy trường imageUrl của sản phẩm
+         },
+      });
       res.status(200).json(orders);
    } catch (error) {
       console.error("Error getting all orders:", error);

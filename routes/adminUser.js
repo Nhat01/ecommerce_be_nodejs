@@ -4,7 +4,7 @@ const User = require("../models/User");
 
 router.get("/", async (req, res) => {
    try {
-      const users = await User.find();
+      const users = await User.find({ isDelete: 0 });
       res.json(users);
    } catch (err) {
       res.status(500).json({ message: err.message });
@@ -15,7 +15,7 @@ router.get("/find", async (req, res) => {
    const { pageNumber, pageSize } = req.query;
 
    try {
-      let query = {};
+      let query = { isDelete: 0 };
       const parsedPageNumber = parseInt(pageNumber);
       if (isNaN(parsedPageNumber) || parsedPageNumber < 1) {
          return res.status(400).json({ error: "Invalid pageNumber value" });
@@ -66,13 +66,17 @@ router.put("/update", async (req, res) => {
 // Route to delete a single user by ID
 router.delete("/delete/:id", async (req, res) => {
    try {
-      const user = await User.findById(req.params.id);
+      const user = await User.findByIdAndUpdate(
+         req.params.id,
+         { $set: { isDelete: 1 } },
+         { new: true }
+      );
+      console.log(user);
       if (!user) {
          return res.status(404).json({ message: "User not found" });
       }
 
-      await user.remove();
-      res.json({ message: "User deleted successfully" });
+      res.json(user);
    } catch (err) {
       res.status(500).json({ message: err.message });
    }

@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
    ],
    ratings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Rating" }],
    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
+   isDelete: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("User", userSchema);
