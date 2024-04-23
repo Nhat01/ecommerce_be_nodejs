@@ -11,6 +11,8 @@ router.post("/", authenticateJWT, async (req, res) => {
          return res.status(404).json({ error: "User not found" });
       }
 
+      let shippingAddress = null;
+
       const {
          firstName,
          lastName,
@@ -46,7 +48,10 @@ router.post("/", authenticateJWT, async (req, res) => {
          });
          await address.save();
          user.address.push(address._id);
+         shippingAddress = address._id;
          await user.save();
+      } else {
+         shippingAddress = _id;
       }
 
       const cart = await Cart.findOne({ user: user._id }).populate("cartItems");
@@ -83,7 +88,7 @@ router.post("/", authenticateJWT, async (req, res) => {
          totalDiscountedPrice,
          totalPrice,
          totalItem,
-         shippingAddress: _id, // Assign the address ID to the order
+         shippingAddress: shippingAddress, // Assign the address ID to the order
          orderStatus: "PENDING",
          orderDate: new Date(),
          paymentDetails: { status: "PENDING" },

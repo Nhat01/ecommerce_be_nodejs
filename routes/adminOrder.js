@@ -10,7 +10,7 @@ router.get("/", authenticateJWT, async (req, res) => {
          path: "orderItems",
          populate: {
             path: "product",
-            select: "imageUrl", // Chỉ lấy trường imageUrl của sản phẩm
+            select: "imageUrl title", // Chỉ lấy trường imageUrl của sản phẩm
          },
       });
       res.status(200).json(orders);
@@ -32,6 +32,7 @@ router.put("/:orderId/confirmed", authenticateJWT, async (req, res) => {
       if (!order) {
          return res.status(404).json({ error: "Order not found" });
       }
+      console.log(order);
       res.status(200).json(order);
    } catch (error) {
       console.error("Error confirming order:", error);

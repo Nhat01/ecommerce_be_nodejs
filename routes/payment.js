@@ -6,6 +6,8 @@ const moment = require("moment");
 const querystring = require("qs");
 const crypto = require("crypto");
 let config = require("../config/vnpayConfig.json");
+const { User, Cart } = require("../models");
+const { authenticateJWT } = require("../middleware/jwt");
 
 router.post("/payments/:orderId", async (req, res) => {
    const orderId = req.params.orderId;
@@ -66,7 +68,7 @@ router.post("/payments/:orderId", async (req, res) => {
    }
 });
 
-router.get("/payment/:orderId", async (req, res) => {
+router.get("/payment/:orderId", authenticateJWT, async (req, res) => {
    const orderId = req.params.orderId;
    const payerId = req.query.PayerID;
    const paymentId = req.query.paymentId;
@@ -96,6 +98,10 @@ router.get("/payment/:orderId", async (req, res) => {
             if (error) {
                throw error;
             } else {
+               const user = await User.findOne({ email: req.user.email });
+               const cart = await Cart.findOne({ user: user._id });
+               cart.cartItems = [];
+               await cart.save();
                response.message = "Order placed";
                res.status(200).json(response);
             }
@@ -149,7 +155,7 @@ router.post(
       vnp_Params["vnp_TxnRef"] = orderId;
       vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + orderId;
       vnp_Params["vnp_OrderType"] = "other";
-      vnp_Params["vnp_Amount"] = 10000 * 100;
+      vnp_Params["vnp_Amount"] = order.totalDiscountedPrice * 25.46 * 100;
       vnp_Params["vnp_ReturnUrl"] = returnUrl + orderId;
       vnp_Params["vnp_IpAddr"] = ipAddr;
       vnp_Params["vnp_CreateDate"] = createDate;
