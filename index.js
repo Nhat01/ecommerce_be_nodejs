@@ -37,7 +37,7 @@ app.use(
    cors({
       origin: [
          "http://localhost:3000",
-         "https://ecommerce-fe-reactjs.vercel.app/",
+         "https://ecommerce-fe-reactjs.vercel.app",
       ],
       credentials: true,
    })
