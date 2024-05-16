@@ -35,10 +35,14 @@ mongoose
 app.use(express.json());
 app.use(
    cors({
-      origin: "http://localhost:3000",
+      origin: [
+         "http://localhost:3000",
+         "https://ecommerce-fe-reactjs.vercel.app/",
+      ],
       credentials: true,
    })
 );
+
 // Các route khác có thể được định nghĩa tương tự cho các mô hình khác
 app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
